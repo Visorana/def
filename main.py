@@ -10,7 +10,86 @@ directories = {
 }
 
 
-def main():
+def get_name():
+    id_number = input('Введите номер документа: ')
+    for i in documents:
+        if id_number == i['number']:
+            print(i['name'])
+            return
+    print('Документ не найден.')
+
+
+def get_shelf():
+    id_number = input('Введите номер документа: ')
+    for shelf in directories:
+        if id_number in directories[shelf]:
+            print(f'Полка {shelf}.')
+            return
+    print('Несуществующий номер документа.')
+
+
+def get_list():
+    for person in documents:
+        print(f"{person['type']} \"{person['number']}\" \"{person['name']}\"")
+    print()
+    return
+
+
+def add_doc():
+    new_doc = dict(type=input('Тип документа: '), number=input('Номер документа: '), name=input('Имя: '))
+    while True:
+        shelf_number = input('Номер полки для документа: ')
+        if shelf_number in directories:
+            documents.append(new_doc)
+            directories[shelf_number].append(new_doc['number'])
+            print('Новый документ добавлен.')
+            return
+        print('Несуществующий номер полки. Доступные полки:', ', '.join(directories.keys()))
+
+
+def del_doc():
+    id_number = input('Введите номер документа: ')
+    for person in documents:
+        if id_number == person['number']:
+            del documents[documents.index(person)]
+    for shelf in directories:
+        if id_number in directories[shelf]:
+            directories[shelf].remove(id_number)
+            print('Документ удалён.')
+            return
+    print('Несуществующий номер документа.')
+
+
+def move_doc():
+    id_number = input('Введите номер документа, который хотите переместить: ')
+    if id_number in sum(directories.values(), []):
+        number_shelf = input('Введите номер полки, на которую хотите переместить документ: ')
+        if number_shelf not in directories:
+            print('Полка не найдена.')
+            return
+        for shelf, value in directories.items():
+            if id_number in value:
+                directories[number_shelf] += [id_number]
+                value.remove(id_number)
+                print('Документ перемещён.')
+                return
+    print('Документ не найден.')
+
+
+def add_shelf():
+    shelf_number = input('Номер новой полки: ')
+    if shelf_number in directories:
+        print('Полка уже существует.')
+    else:
+        directories[shelf_number] = []
+        print('Полка добавлена.')
+        return
+
+
+inputDict = {'p': get_name, 's': get_shelf, 'l': get_list, 'a': add_doc, 'd': del_doc, 'm': move_doc, 'as': add_shelf}
+
+
+def user_choice():
     print('Пользовательские команды:',
           'p - узнать имя человека по номеру документа.',
           's - номер полки, где находится документ.',
@@ -18,127 +97,18 @@ def main():
           'a - добавить новый документ.',
           'd - удалить документ по номеру.',
           'm - переместить документ на другую полку по номеру.',
-          'as - добавить новую полку.', sep='\n')
+          'as - добавить новую полку.',
+          'q - выход', sep='\n')
     while True:
-        user_input = input('Введите команду: ')
-        if user_input == 'p':
-            get_name()
-        elif user_input == 's':
-            get_shelf()
-        elif user_input == 'l':
-            get_list_of_docs()
-        elif user_input == 'a':
-            add_new_doc()
-        elif user_input == 'd':
-            del_doc()
-        elif user_input == 'm':
-            trans_doc()
-        elif user_input == 'as':
-            add_shelf()
-        else:
-            print('Несуществующая команда.')
-
-
-def is_valid(id_number):
-    for i in documents:
-        if id_number == i['number']:
-            return True
-    else:
-        return False
-
-
-def is_available(id_number):
-    return id_number in sum(directories.values(), [])
-
-
-def get_name():
-    while True:
-        id_number = input('Введите номер документа: ')
-        if is_valid(id_number):
-            for i in documents:
-                if id_number == i['number']:
-                    print(i['name'], '', sep='\n')
-                    return
-        else:
-            print('Несуществующий номер документа.')
-
-
-def get_shelf():
-    while True:
-        id_number = input('Введите номер документа: ')
-        if is_available(id_number):
-            for shelf in directories:
-                if id_number in directories[shelf]:
-                    print(f'Полка {shelf}.', '', sep='\n')
-                    return
-        else:
-            print('Несуществующий номер документа.')
-
-
-def get_list_of_docs():
-    for person in documents:
-        print(f"{person['type']} \"{person['number']}\" \"{person['name']}\"")
-    print()
-    return
-
-
-def add_new_doc():
-    new_doc = dict(type=input('Тип документа: '), number=input('Номер документа: '), name=input('Имя: '))
-    while True:
-        s_number = input('Номер полки для документа: ')
-        if s_number in directories:
-            documents.append(new_doc)
-            directories[s_number].append(documents[-1]['number'])
-            print('Новый документ добавлен.', '', sep='\n')
+        choice = input('Введите команду: ').lower()
+        if choice == 'q':
+            print('Вы вышли из программы.')
             return
+        elif choice in inputDict.keys():
+            inputDict[choice]()
         else:
-            print('Несуществующий номер полки. Доступные полки:', ', '.join(directories.keys()))
+            print('Команда не найдена.')
 
 
-def del_doc():
-    while True:
-        id_number = input('Введите номер документа: ')
-        if is_valid(id_number):
-            for person in documents:
-                if id_number == person['number']:
-                    del documents[documents.index(person)]
-                    continue
-            for shelf in directories:
-                if id_number in directories[shelf]:
-                    del directories[shelf][directories[shelf].index(id_number)]
-                    print('Документ удалён.', '', sep='\n')
-                    return
-        else:
-            print('Несуществующий номер документа.')
+user_choice()
 
-
-def trans_doc():
-    while True:
-        id_number = input('Введите номер документа: ')
-        if is_available(id_number):
-            while True:
-                s_number = input('Введите номер полки для перемещения: ')
-                if s_number in directories.keys():
-                    for shelf in directories.values():
-                        if id_number in shelf:
-                            directories[s_number].append(shelf.pop(shelf.index(id_number)))
-                            print('Документ перемещён.', '', sep='\n')
-                            return
-                else:
-                    print('Несуществующий номер полки. Доступные полки:', ', '.join(directories.keys()))
-        else:
-            print('Несуществующий номер документа.')
-
-
-def add_shelf():
-    while True:
-        s_number = input('Номер новой полки: ')
-        if s_number in directories:
-            print('Полка уже существует.')
-        else:
-            directories[s_number] = []
-            print('Полка добавлена.', '', sep='\n')
-            return
-
-
-main()
